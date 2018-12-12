@@ -965,6 +965,7 @@ skip_init_ctx:
 	prog->jited = 1;
 	prog->jited_len = image_size;
 	if (!prog->is_func || extra_pass) {
+		bpf_prog_fill_jited_linfo(prog, ctx.offset);
 out_off:
 		kfree(ctx.offset);
 		kfree(jit_data);
