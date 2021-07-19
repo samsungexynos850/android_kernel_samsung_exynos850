@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
  *
  * (C) COPYRIGHT 2020-2021 ARM Limited. All rights reserved.
@@ -34,7 +34,7 @@ struct priority_control_manager_device;
  * @pcm_scheduler_priority_check: Callback to check if scheduling priority level can be requested
  */
 struct priority_control_manager_ops {
-	/*
+	/**
 	 * pcm_scheduler_priority_check: This function can be used to check what priority its work
 	 *                               would be treated as based on the requested_priority value.
 	 *
