@@ -1676,6 +1676,375 @@ static void glove_mode(void *device_data)
 	}
 
 	if (mutex_lock_interruptible(&ts->lock)) {
+		input_err(true, &ts->client->dev, "%s: another task is running\n",
+			__func__);
+		goto out;
+	}
+
+	if (sec->cmd_param[0])
+		ts->sec_function |= GLOVE_MASK;
+	else
+		ts->sec_function &= ~GLOVE_MASK;
+
+	ret = nvt_ts_mode_switch(ts, mode, true);
+	if (ret) {
+		mutex_unlock(&ts->lock);
+		goto out;
+	}
+
+	mutex_unlock(&ts->lock);
+
+	snprintf(buff, sizeof(buff), "%s", "OK");
+	sec->cmd_state =  SEC_CMD_STATUS_OK;
+	sec_cmd_set_cmd_result(sec, buff, strnlen(buff, sizeof(buff)));
+	sec_cmd_set_cmd_exit(sec);
+
+	input_info(true, &ts->client->dev, "%s: %s\n", __func__, buff);
+
+	return;
+out:
+	snprintf(buff, sizeof(buff), "%s", "NG");
+	sec->cmd_state = SEC_CMD_STATUS_FAIL;
+	sec_cmd_set_cmd_result(sec, buff, strnlen(buff, sizeof(buff)));
+	sec_cmd_set_cmd_exit(sec);
+
+	input_info(true, &ts->client->dev, "%s: %s\n", __func__, buff);
+}
+
+#ifdef PROXIMITY_FUNCTION
+int set_ear_detect(struct nvt_ts_data *ts, int mode, bool print_log)
+{
+	int ret;
+	u8 reg;
+	u8 buf[3];
+	u8 subcmd;
+
+	input_info(true, &ts->client->dev, "%s: set ear mode(%d)\n", __func__, mode);
+
+	reg = mode ? PROXIMITY_ENTER : PROXIMITY_LEAVE;
+
+	if (mode == 1)
+		subcmd = PROXIMITY_INSENSITIVITY;
+	else if (mode == 3)
+		subcmd = PROXIMITY_NORMAL;
+	else
+		subcmd = 0; //don't care this value  when the mode == PROXIMITY_LEAVE
+
+
+	buf[0] = EVENT_MAP_HOST_CMD;
+	buf[1] = reg;
+	buf[2] = subcmd;
+	ret = nvt_ts_mode_switch_extened(ts, buf, 3, print_log);
+	if (ret) {
+		input_err(true, &ts->client->dev, "%s failed to switch ed\n", __func__);
+	}
+
+	return ret;
+}
+
+static void ear_detect_enable(void *device_data)
+{
+	struct sec_cmd_data *sec = (struct sec_cmd_data *)device_data;
+	struct nvt_ts_data *ts = container_of(sec, struct nvt_ts_data, sec);
+	char buff[SEC_CMD_STR_LEN] = { 0 };
+	int ret;
+
+	sec_cmd_set_default_result(sec);
+
+	if (!ts->platdata->support_ear_detect) {
+		input_err(true, &ts->client->dev, "%s: Not support EarDetection!\n", __func__);
+		goto out;
+	}
+
+	if (!(sec->cmd_param[0] == 0 || sec->cmd_param[0] == 1 || sec->cmd_param[0] == 3)) {
+		input_err(true, &ts->client->dev, "%s: invalid parameter %d\n", __func__, sec->cmd_param[0]);
+		goto out;
+	} else {
+		ts->ear_detect_mode = sec->cmd_param[0];
+	}
+
+	if (ts->power_status != POWER_ON_STATUS) {
+		ts->ed_reset_flag = true;
+		input_err(true, &ts->client->dev, "%s: POWER_STATUS IS NOT ON(%d)!\n",
+					__func__, ts->power_status);
+		goto out;
+	}
+
+	if (mutex_lock_interruptible(&ts->lock)) {
+		input_err(true, &ts->client->dev, "%s: another task is running\n",
+			__func__);
+		goto out;
+	}
+
+	ret = set_ear_detect(ts, ts->ear_detect_mode, true);
+	if (ret) {
+		mutex_unlock(&ts->lock);
+		goto out;
+	}
+
+	mutex_unlock(&ts->lock);
+
+	snprintf(buff, sizeof(buff), "%s", "OK");
+	sec->cmd_state =  SEC_CMD_STATUS_OK;
+	sec_cmd_set_cmd_result(sec, buff, strnlen(buff, sizeof(buff)));
+	sec_cmd_set_cmd_exit(sec);
+
+	input_info(true, &ts->client->dev, "%s,%d: %s\n", __func__, sec->cmd_param[0], buff);
+
+	return;
+out:
+	snprintf(buff, sizeof(buff), "%s", "NG");
+	sec->cmd_state = SEC_CMD_STATUS_FAIL;
+	sec_cmd_set_cmd_result(sec, buff, strnlen(buff, sizeof(buff)));
+	sec_cmd_set_cmd_exit(sec);
+
+	input_info(true, &ts->client->dev, "%s,%d: %s\n", __func__, sec->cmd_param[0], buff);
+}
+
+
+static void prox_lp_scan_mode(void *device_data)
+{
+	struct sec_cmd_data *sec = (struct sec_cmd_data *)device_data;
+	struct nvt_ts_data *ts = container_of(sec, struct nvt_ts_data, sec);
+	char buff[SEC_CMD_STR_LEN] = { 0 };
+	u8 mode = 0;
+	int ret = 0;
+	u8 buf[3] = {0};
+	int retry = 10;
+
+	sec_cmd_set_default_result(sec);
+
+	if (!ts->platdata->prox_lp_scan_enabled) {
+		input_err(true, &ts->client->dev, "%s: Not support LPSCAN!\n", __func__);
+		goto out;
+	}
+
+	if (ts->power_status != LP_MODE_STATUS) {
+		input_err(true, &ts->client->dev, "%s: Not LP_MODE_STATUS!\n", __func__);
+		goto out;
+	}
+
+	if (!ts->ear_detect_mode) {
+		input_err(true, &ts->client->dev, "%s: Not EAR_DETECT_MODE!\n", __func__);
+		goto out;
+	}
+
+	if (sec->cmd_param[0] < 0 || sec->cmd_param[0] > 1) {
+		input_err(true, &ts->client->dev, "%s: invalid parameter %d\n",
+			__func__, sec->cmd_param[0]);
+		goto out;
+	} else {
+		mode = sec->cmd_param[0] ? PROX_SLEEP_OUT : PROX_SLEEP_IN;
+	}
+
+	if (mutex_lock_interruptible(&ts->lock)) {
+		input_err(true, &ts->client->dev, "%s: another task is running\n",
+			__func__);
+		goto out;
+	}
+
+	while(retry) {
+		buf[0] = EVENT_MAP_HOST_CMD;
+		buf[1] = EXTENDED_CUSTOMIZED_CMD;
+		buf[2] = mode;
+
+		ret = nvt_ts_mode_switch_extened(ts, buf, 3, true);
+		if (ret) {
+			input_err(true, &ts->client->dev, "%s, retry:%d \n", __func__, retry);
+			retry--;
+		} else {
+			break;
+		}
+	}
+	if (ret) {
+		input_err(true, &ts->client->dev, "%s : failed to switch %s mode\n",
+					__func__, (mode == PROX_SLEEP_IN) ? "SLEEP_IN" : "SLEEP_OUT");
+		mutex_unlock(&ts->lock);
+		goto out;
+	}
+
+	mutex_unlock(&ts->lock);
+
+	snprintf(buff, sizeof(buff), "%s", "OK");
+	sec->cmd_state =  SEC_CMD_STATUS_OK;
+	sec_cmd_set_cmd_result(sec, buff, strnlen(buff, sizeof(buff)));
+	sec_cmd_set_cmd_exit(sec);
+
+	input_info(true, &ts->client->dev, "%s : switch to %s mode OK\n",
+					__func__, (mode == PROX_SLEEP_IN) ? "SLEEP_IN" : "SLEEP_OUT");
+
+	return;
+out:
+	snprintf(buff, sizeof(buff), "%s", "NG");
+	sec->cmd_state = SEC_CMD_STATUS_FAIL;
+	sec_cmd_set_cmd_result(sec, buff, strnlen(buff, sizeof(buff)));
+	sec_cmd_set_cmd_exit(sec);
+
+	input_info(true, &ts->client->dev, "%s : failed to switch %d mode\n", __func__, mode);
+}
+
+#endif
+
+/*
+ *	cmd_param
+ *		[0], 0 normal debounce
+ *		     1 lower debounce
+ */
+static void set_sip_mode(void *device_data)
+{
+	struct sec_cmd_data *sec = (struct sec_cmd_data *)device_data;
+	struct nvt_ts_data *ts = container_of(sec, struct nvt_ts_data, sec);
+	char buff[SEC_CMD_STR_LEN] = { 0 };
+	int reti;
+	u8 mode;
+	u8 buf[4];
+
+	sec_cmd_set_default_result(sec);
+
+	if (ts->power_status == POWER_OFF_STATUS) {
+		input_err(true, &ts->client->dev, "%s: POWER_STATUS : OFF!\n", __func__);
+		goto out;
+	}
+
+	if (sec->cmd_param[0] < DEBOUNCE_NORMAL || sec->cmd_param[0] > DEBOUNCE_LOWER) {
+		input_err(true, &ts->client->dev, "%s: invalid parameter %d\n",
+			__func__, sec->cmd_param[0]);
+		goto out;
+	} else {
+		mode = sec->cmd_param[0];
+	}
+
+	if (mutex_lock_interruptible(&ts->lock)) {
+		input_err(true, &ts->client->dev, "%s: another task is running\n", __func__);
+		goto out;
+	}
+
+	input_info(true, &ts->client->dev, "%s: use %s touch debounce, cmd_param=%d\n", 
+		__func__, sec->cmd_param[0] ? "lower" : "normal", sec->cmd_param[0]);
+	
+	buf[0] = EVENT_MAP_HOST_CMD;
+	buf[1] = EXTENDED_CUSTOMIZED_CMD;
+	buf[2] = SET_TOUCH_DEBOUNCE;
+	buf[3] = (u8)sec->cmd_param[0];
+	reti = nvt_ts_mode_switch_extened(ts, buf, 4, true);
+	if (reti) {
+		input_err(true, &ts->client->dev, "%s failed to switch sip mode - 0x%02X\n", __func__, buf[3]);
+		mutex_unlock(&ts->lock);
+		goto out;
+	}
+
+	mutex_unlock(&ts->lock);
+
+	snprintf(buff, sizeof(buff), "%s", "OK");
+	sec->cmd_state =  SEC_CMD_STATUS_OK;
+	sec_cmd_set_cmd_result(sec, buff, strnlen(buff, sizeof(buff)));
+	sec_cmd_set_cmd_exit(sec);
+
+	input_info(true, &ts->client->dev, "%s: %s\n", __func__, buff);
+
+	return;
+out:
+	snprintf(buff, sizeof(buff), "%s", "NG");
+	sec->cmd_state = SEC_CMD_STATUS_FAIL;
+	sec_cmd_set_cmd_result(sec, buff, strnlen(buff, sizeof(buff)));
+	sec_cmd_set_cmd_exit(sec);
+
+	input_info(true, &ts->client->dev, "%s: %s\n", __func__, buff);
+}
+
+/*
+*	0 disable game mode
+*	1 enable game mode
+*/
+static void set_game_mode(void *device_data)
+{
+	struct sec_cmd_data *sec = (struct sec_cmd_data *)device_data;
+	struct nvt_ts_data *ts = container_of(sec, struct nvt_ts_data, sec);
+	char buff[SEC_CMD_STR_LEN] = { 0 };
+	u8 mode = 0;
+	u8 buf[4] = { 0 };
+
+	sec_cmd_set_default_result(sec);
+	if (ts->power_status == POWER_OFF_STATUS) {
+		input_err(true, &ts->client->dev, "%s: invalid POWER_STATUS : OFF!\n", __func__);
+		goto out;
+	}
+
+	if (sec->cmd_param[0] < GAME_MODE_DISABLE || sec->cmd_param[0] > GAME_MODE_ENABLE) {
+		input_err(true, &ts->client->dev, "%s: invalid parameter %d\n", __func__, sec->cmd_param[0]);
+		goto out;
+	}
+
+	mode = sec->cmd_param[0];
+
+	if (mutex_lock_interruptible(&ts->lock)) {
+		input_err(true, &ts->client->dev, "%s: another task is running\n", __func__);
+		goto out;
+	}
+
+	input_info(true, &ts->client->dev, "%s: %s touch game mode, cmd_param=%d\n",
+			__func__, sec->cmd_param[0] ? "enable" : "disable", sec->cmd_param[0]);
+
+	buf[0] = EVENT_MAP_HOST_CMD;
+	buf[1] = EXTENDED_CUSTOMIZED_CMD;
+	buf[2] = SET_GAME_MODE;
+	buf[3] = (u8)sec->cmd_param[0];
+
+	if (nvt_ts_mode_switch_extened(ts, buf, 4, true)) {
+		input_err(true, &ts->client->dev, "%s failed to switch game mode\n", __func__);
+		mutex_unlock(&ts->lock);
+		goto out;
+	}
+	mutex_unlock(&ts->lock);
+
+	snprintf(buff, sizeof(buff), "%s", "OK");
+	sec->cmd_state =  SEC_CMD_STATUS_OK;
+	sec_cmd_set_cmd_result(sec, buff, strnlen(buff, sizeof(buff)));
+	sec_cmd_set_cmd_exit(sec);
+	input_info(true, &ts->client->dev, "%s: %s\n", __func__, buff);
+	return;
+
+out:
+	snprintf(buff, sizeof(buff), "%s", "NG");
+	sec->cmd_state = SEC_CMD_STATUS_FAIL;
+	sec_cmd_set_cmd_result(sec, buff, strnlen(buff, sizeof(buff)));
+	sec_cmd_set_cmd_exit(sec);
+	input_info(true, &ts->client->dev, "%s: %s\n", __func__, buff);
+}
+
+static void aot_enable(void *device_data)
+{
+	struct sec_cmd_data *sec = (struct sec_cmd_data *)device_data;
+	struct nvt_ts_data *ts = container_of(sec, struct nvt_ts_data, sec);
+	char buff[SEC_CMD_STR_LEN] = { 0 };
+	int ret;
+	u8 mode;
+
+	sec_cmd_set_default_result(sec);
+
+	if (!ts->platdata->enable_settings_aot) {
+		input_err(true, &ts->client->dev, "%s: Not support AOT!\n", __func__);
+		goto out;
+	}
+
+	if (sec->cmd_param[0] < 0 || sec->cmd_param[0] > 1) {
+		input_err(true, &ts->client->dev, "%s: invalid parameter %d\n",
+			__func__, sec->cmd_param[0]);
+		goto out;
+	}
+
+	if (sec->cmd_param[0])
+		ts->sec_function |= DOUBLE_CLICK_MASK;
+	else
+		ts->sec_function &= ~DOUBLE_CLICK_MASK;
+
+	mode = sec->cmd_param[0] ? DOUBLE_CLICK_ENTER : DOUBLE_CLICK_LEAVE;
+	ts->aot_enable = sec->cmd_param[0];
+	ts->lowpower_mode = ts->aot_enable;
+	input_info(true, &ts->client->dev, "%s: %s, %02X\n",
+			__func__, sec->cmd_param[0] ? "on" : "off", ts->lowpower_mode);
+
+	if (mutex_lock_interruptible(&ts->lock)) {
 		input_err(true, &ts->client->dev,"%s: another task is running\n",
 			__func__);
 		goto out;
