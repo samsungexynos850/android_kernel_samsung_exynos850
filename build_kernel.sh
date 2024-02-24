@@ -7,7 +7,7 @@ ZIPNAME=A217F-Lineage.zip
 DEFCONFIG=lineage_defconfig
 LOS=$(pwd)/Lineage
 LOS_KERNEL=$(pwd)/out/arch/arm64/boot
-LOS_DTB=$(pwd)/out/arch/arm64/boot/dts/exynos
+LOS_DTB=$(pwd)/out/arch/arm64/boot/dts
 PACKAGING=$(pwd)/Lineage/packaging
 
 # Export commands
@@ -33,7 +33,6 @@ CLEAN_PACKAGES()
 	rm -rf Lineage/packaging/boot.img
 	rm -rf Lineage/packaging/A21F-Lineage.zip
   rm -rf $LOS_KERNEL/Image
-  rm -rf $LOS_DTB/exynos3830.dtb
   rm -rf $LOS_KERNEL/../configs/.tmp_defconfig
 }
 
@@ -46,6 +45,25 @@ CLEAN_SOURCE()
     rm -rf $(pwd)/out
   else
     echo "Source will not be cleaned"
+  fi
+}
+
+UPDATE_DEPS()
+{
+  if hostnamectl | grep -q 'Ubuntu'; then
+    echo "You are running an Ubuntu machine"
+    sudo apt update && sudo apt upgrade -y
+    sudo apt-get install git fakeroot build-essential ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison python3 python-is-python3 -y
+  else
+    echo "You are not running Ubuntu - *DEPENDENCIES will NOT be installed*"
+  fi
+}
+
+DETECT_TOOLCHAIN()
+{
+  if [ ! -e "~/toolchains/gcc-4.9" ]; then
+    echo "GCC v4.9 Toolchain NOT detected, Downloading now..."
+    sudo git clone --depth=1 https://github.com/Samsung-Galaxy-A21s/toolchain ~/toolchains/gcc-4.9/
   fi
 }
 
@@ -80,7 +98,6 @@ AIK-Linux()
 
 		# Build bootable image
 		$LOS/AIK-Linux/unpackimg.sh
-    cp -r $LOS_DTB/exynos3830.dtb $LOS/AIK-Linux/split_img/boot.img-dtb
     cp -r $LOS_KERNEL/Image $LOS/AIK-Linux/split_img/boot.img-kernel
 		$LOS/AIK-Linux/repackimg.sh
 		cp -r $LOS/AIK-Linux/image-new.img $PACKAGING/boot.img
@@ -95,7 +112,6 @@ AIK-Linux()
 	}
 	fi
 }
-
 
 DISPLAY_ELAPSED_TIME()
 {
@@ -116,6 +132,8 @@ DISPLAY_ELAPSED_TIME()
 
 MAIN()
 {
+  UPDATE_DEPS
+  DETECT_TOOLCHAIN
   CLEAN_SOURCE
   CLEAN_PACKAGES
 	echo "*****************************************************"
