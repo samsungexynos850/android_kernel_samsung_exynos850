@@ -3,7 +3,7 @@
 
 # Set default kernel variables
 PROJECT_NAME="Lineage Kernel"
-ZIPNAME=A217F-Lineage.zip
+ZIPNAME=A217F-S8-Lineage.zip
 DEFCONFIG=lineage_defconfig
 LOS=$(pwd)/Lineage
 LOS_KERNEL=$(pwd)/out/arch/arm64/boot
@@ -31,7 +31,7 @@ CLEAN_PACKAGES()
 	fi
 
 	rm -rf Lineage/packaging/boot.img
-	rm -rf Lineage/packaging/A21F-Lineage.zip
+	rm -rf Lineage/packaging/A21F-S8-Lineage.zip
   rm -rf $LOS_KERNEL/Image
   rm -rf $LOS_KERNEL/../configs/.tmp_defconfig
 }
