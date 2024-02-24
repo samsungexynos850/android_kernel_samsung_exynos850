@@ -361,7 +361,7 @@ HOST_LFS_LIBS := $(shell getconf LFS_LIBS 2>/dev/null)
 
 HOSTCC       = gcc
 HOSTCXX      = g++
-KBUILD_HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 \
+KBUILD_HOSTCFLAGS   := -Wall -Wdeprecated-declarations -Wmissing-prototypes -Wstrict-prototypes -O2 \
 		-fomit-frame-pointer -std=gnu89 $(HOST_LFS_CFLAGS) \
 		$(HOSTCFLAGS)
 KBUILD_HOSTCXXFLAGS := -O2 $(HOST_LFS_CFLAGS) $(HOSTCXXFLAGS)
@@ -428,6 +428,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -Werror \
+       -Wdeprecated-declarations \
 		   -std=gnu89
 KBUILD_CPPFLAGS := -D__KERNEL__
 KBUILD_AFLAGS_KERNEL :=
@@ -526,6 +527,7 @@ endif
 KBUILD_CFLAGS += -Wno-sizeof-pointer-div
 CLANG_FLAGS	+= -no-integrated-as
 CLANG_FLAGS	+= -Werror=unknown-warning-option
+CLANG_FLAGS += -Wdeprecated-declarations
 KBUILD_CFLAGS	+= $(CLANG_FLAGS)
 KBUILD_AFLAGS	+= $(CLANG_FLAGS)
 export CLANG_FLAGS
@@ -917,6 +919,9 @@ KBUILD_CFLAGS   += $(call cc-option,-fconserve-stack)
 
 # disallow errors like 'EXPORT_GPL(foo);' with missing header
 KBUILD_CFLAGS   += $(call cc-option,-Werror=implicit-int)
+
+# Remove deprecated code warnings
+KBUILD_CFLAGS   += $(call cc-option,-Wdeprecated-declarations)
 
 # require functions to have arguments in prototypes, not empty 'int foo()'
 KBUILD_CFLAGS   += $(call cc-option,-Werror=strict-prototypes)
@@ -1408,6 +1413,20 @@ endif # CONFIG_MODULES
 
 # Directories & files removed with 'make clean'
 CLEAN_DIRS  += $(MODVERDIR) include/ksym
+
+# Create Variable for the dts source
+GENERATED_DEVICETS = arch/arm64/boot/dts
+
+# Clean the dtb files
+CLEAN_FILES  += $(GENERATED_DEVICETS)/exynos/exynos3830.dtb.dtout $(GENERATED_DEVICETS)/exynos/exynos3830.dtb.reverse.dts
+
+# Clean the dtbo files
+CLEAN_FILES  += $(GENERATED_DEVICETS)/samsung/a21s/a21s_eur_open_w00_r00.dtbo.dtout $(GENERATED_DEVICETS)/samsung/a21s/a21s_eur_open_w00_r00.dtbo.reverse.dts
+CLEAN_FILES  += $(GENERATED_DEVICETS)/samsung/a21s/a21s_eur_open_w00_r01.dtbo.dtout $(GENERATED_DEVICETS)/samsung/a21s/a21s_eur_open_w00_r01.dtbo.reverse.dts
+CLEAN_FILES  += $(GENERATED_DEVICETS)/samsung/a21s/a21s_eur_open_w00_r02.dtbo.dtout $(GENERATED_DEVICETS)/samsung/a21s/a21s_eur_open_w00_r02.dtbo.reverse.dts
+CLEAN_FILES  += $(GENERATED_DEVICETS)/samsung/a21s/a21s_eur_open_w00_r03.dtbo.dtout $(GENERATED_DEVICETS)/samsung/a21s/a21s_eur_open_w00_r03.dtbo.reverse.dts
+CLEAN_FILES  += $(GENERATED_DEVICETS)/samsung/a21s/a21s_eur_open_w00_r06.dtbo.dtout $(GENERATED_DEVICETS)/samsung/a21s/a21s_eur_open_w00_r06.dtbo.reverse.dts
+
 
 # Directories & files removed with 'make mrproper'
 MRPROPER_DIRS  += include/config usr/include include/generated          \
