@@ -52,8 +52,10 @@ UPDATE_DEPS()
 {
   if hostnamectl | grep -q 'Ubuntu'; then
     echo "You are running an Ubuntu machine"
+    echo "                                 "
     sudo apt update && sudo apt upgrade -y
     sudo apt-get install git fakeroot build-essential ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison python3 python-is-python3 -y
+    echo "                                 "
   else
     echo "You are not running Ubuntu - *DEPENDENCIES will NOT be installed*"
   fi
@@ -64,6 +66,7 @@ DETECT_TOOLCHAIN()
   if [ ! -e "~/toolchains/gcc-4.9" ]; then
     echo "GCC v4.9 Toolchain NOT detected, Downloading now..."
     sudo git clone --depth=1 https://github.com/Samsung-Galaxy-A21s/toolchain ~/toolchains/gcc-4.9/
+    echo "                                                   "
   fi
 }
 
