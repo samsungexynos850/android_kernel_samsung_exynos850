@@ -3,7 +3,7 @@
 
 # Set default kernel variables
 PROJECT_NAME="Lineage Kernel"
-ZIPNAME=A217F-S8-Lineage.zip
+ZIPNAME=A217M-UB-Lineage.zip
 DEFCONFIG=lineage_defconfig
 LOS=$(pwd)/Lineage
 LOS_KERNEL=$(pwd)/out/arch/arm64/boot
@@ -31,7 +31,7 @@ CLEAN_PACKAGES()
 	fi
 
 	rm -rf Lineage/packaging/boot.img
-	rm -rf Lineage/packaging/A21F-S8-Lineage.zip
+	rm -rf Lineage/packaging/A21M-UB-Lineage.zip
   rm -rf $LOS_KERNEL/Image
   rm -rf $LOS_KERNEL/../configs/.tmp_defconfig
 }
@@ -70,7 +70,7 @@ DETECT_TOOLCHAIN()
 BUILD_KERNEL()
 {
 	echo "*****************************************************"
-	echo "           Building kernel for SM-A217F S8           "
+	echo "           Building kernel for SM-A217M UB           "
 	make ARCH=arm64 $DEFCONFIG O=$(pwd)/out
 	make ARCH=arm64 -j64 O=$(pwd)/out
 
