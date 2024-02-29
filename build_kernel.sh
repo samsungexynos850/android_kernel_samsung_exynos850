@@ -64,7 +64,7 @@ UPDATE_DEPS()
 DETECT_TOOLCHAIN()
 {
   if [ ! -e "~/toolchains/gcc-4.9" ]; then
-    echo "GCC v4.9 Toolchain NOT detected, Downloading now..."
+    echo "Toolchain will download if not installed in correct direcotry..."
     sudo git clone --depth=1 https://github.com/Samsung-Galaxy-A21s/toolchain ~/toolchains/gcc-4.9/
     echo "                                                   "
   fi
@@ -99,12 +99,18 @@ AIK-Linux()
 		echo -e "                                                     "
 		echo -e "*****************************************************"
 
+    # Build device trees
+    $LOS/mkdtimg cfg_create $LOS_DTB/dtb.img $LOS/dtb.cfg -d $LOS_DTB/exynos
+    $LOS/mkdtimg cfg_create $LOS_DTB/dtbo.img $LOS/dtbo.cfg -d $LOS_DTB/samsung/a21s
+
 		# Build bootable image
 		$LOS/AIK-Linux/unpackimg.sh
     cp -r $LOS_KERNEL/Image $LOS/AIK-Linux/split_img/boot.img-kernel
+    cp -r $LOS_DTB/dtb.img $LOS/AIK-Linux/split_img/boot.img-dtb
 		$LOS/AIK-Linux/repackimg.sh
 		cp -r $LOS/AIK-Linux/image-new.img $PACKAGING/boot.img
 		$LOS/AIK-Linux/cleanup.sh
+
 
 		# Build packaging
 		cd $PACKAGING
