@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script by Me - RiskyGUY22 (thomas_turner36)
+# Script by Me - RiskyGUY22 (@thomas_turner36)
 
 # Set default kernel variables
 PROJECT_NAME="Lineage Kernel"
@@ -30,8 +30,9 @@ CLEAN_PACKAGES()
 	  }
 	fi
 
-	rm -rf Lineage/packaging/boot.img
-	rm -rf Lineage/packaging/A21M-UB-Lineage.zip
+  # Clean previous builds
+	rm -rf $LOS/packaging/boot.img
+	rm -rf $LOS/packaging/A217M-UB-Lineage.zip
   rm -rf $LOS_KERNEL/Image
   rm -rf $LOS_KERNEL/../configs/.tmp_defconfig
 }
@@ -44,29 +45,29 @@ CLEAN_SOURCE()
     make clean && make mrproper
     rm -rf $(pwd)/out
   else
-    echo "Source will not be cleaned"
+    echo "Source will not be cleaned..."
   fi
 }
 
 UPDATE_DEPS()
 {
   if hostnamectl | grep -q 'Ubuntu'; then
-    echo "You are running an Ubuntu machine"
-    echo "                                 "
-    sudo apt update && sudo apt upgrade -y
-    sudo apt-get install git fakeroot build-essential ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison python3 python-is-python3 -y
-    echo "                                 "
+    echo "Ubuntu machine detected: missing dependencies will be installed..."
+    sudo apt update > /dev/null 2>&1
+    sudo apt upgrade -y > /dev/null 2>&1
+    sudo apt-get install git fakeroot build-essential ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison python3 python-is-python3 -y > /dev/null 2>&1
+    echo "Dependencies Installed Successfully!"
   else
-    echo "You are not running Ubuntu - *DEPENDENCIES will NOT be installed*"
+    echo "Ubuntu machine NOT detected - *DEPENDENCIES will NOT be installed*"
   fi
 }
 
 DETECT_TOOLCHAIN()
 {
-  if [ ! -e "~/toolchains/gcc-4.9" ]; then
-    echo "Toolchain will download if not installed in correct direcotry..."
-    sudo git clone --depth=1 https://github.com/Samsung-Galaxy-A21s/toolchain ~/toolchains/gcc-4.9/
-    echo "                                                   "
+  if [ ! -e "$HOME/toolchains/gcc-4.9" ]; then
+    echo "Toolchain NOT detected: Downloading now..."
+    sudo git clone --depth=1 https://github.com/Samsung-Galaxy-A21s/toolchain ~/toolchains/gcc-4.9/ > /dev/null 2>&1
+    echo "Toolchain was Successfully found!"
   fi
 }
 
@@ -74,7 +75,7 @@ BUILD_KERNEL()
 {
 	echo "*****************************************************"
 	echo "           Building kernel for SM-A217M UB           "
-	make ARCH=arm64 $DEFCONFIG O=$(pwd)/out
+	make ARCH=arm64 -j64 $DEFCONFIG O=$(pwd)/out
 	make ARCH=arm64 -j64 O=$(pwd)/out
 
   # Check if kernel Image was created
