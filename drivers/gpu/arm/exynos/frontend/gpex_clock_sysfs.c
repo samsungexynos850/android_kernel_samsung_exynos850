@@ -141,6 +141,7 @@ GPEX_STATIC ssize_t reset_time_in_state(const char *buf, size_t count)
 }
 CREATE_SYSFS_DEVICE_WRITE_FUNCTION(reset_time_in_state)
 
+#define SUSTAINABLE_FREQ 1196000 // KHz
 GPEX_STATIC ssize_t set_max_lock_dvfs(const char *buf, size_t count)
 {
 	int ret, clock = 0;
@@ -155,6 +156,8 @@ GPEX_STATIC ssize_t set_max_lock_dvfs(const char *buf, size_t count)
 			return -ENOENT;
 		}
 
+    if (clock < SUSTAINABLE_FREQ)
+			clock = SUSTAINABLE_FREQ;
 		clk_info->user_max_lock_input = clock;
 
 		clock = gpex_get_valid_gpu_clock(clock, false);

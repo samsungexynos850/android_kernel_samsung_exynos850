@@ -5276,7 +5276,7 @@
 		gpu_voltage_offset_margin = <0x927c>;
 		gpu_tmu_control = <0x01>;
 		gpu_temp_throttling_level_num = <0x06>;
-		gpu_temp_throttling = <0x91ff0 0x69b68 0x5c0a8 0x26160 0x186a0 0x186a0>;
+		gpu_temp_throttling = <0xf4628 0xd32e8 0xb8150 0x91ff0 0x69b68 0x5c0a8>;
 		gpu_power_coeff = <0x271>;
 		gpu_dvfs_time_interval = <0x05>;
 		gpu_default_wakeup_lock = <0x01>;
