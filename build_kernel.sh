@@ -35,6 +35,25 @@ CLEAN_PACKAGES()
 	rm -rf $LOS/packaging/A217M-UB-Lineage.zip
   rm -rf $LOS_KERNEL/Image
   rm -rf $LOS_KERNEL/../configs/.tmp_defconfig
+
+  # Remove KernelSU from previous builds, Since ROM development doesn't like built in kernelSU
+  rm -rf $(pwd)/drivers/kernelsu
+  rm -rf $(pwd)/KernelSU
+  sed -i '/source "drivers\/kernelsu\/Kconfig"/d' drivers/Kconfig
+  sed -i '/obj-\$(CONFIG_KSU) += kernelsu\//d' drivers/Makefile
+}
+
+KERNEL_SU()
+{
+
+  read -p "Build with root (KernelSU)? [N] (Y/N): " root_confirm
+  if [[ $root_confirm == [yY] || $root_confirm == [yY][eE][sS] ]]; then
+    echo "Downloading KernelSU from github ..."
+    curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash - > /dev/null 2>&1
+  else
+    echo "KernelSU will NOT be implemented in this build..."
+  fi
+
 }
 
 CLEAN_SOURCE()
@@ -146,6 +165,7 @@ MAIN()
   DETECT_TOOLCHAIN
   CLEAN_SOURCE
   CLEAN_PACKAGES
+  KERNEL_SU
 	echo "*****************************************************"
 	echo "                                                     "
 	echo "        Starting compilation of Lineage kernel       "
