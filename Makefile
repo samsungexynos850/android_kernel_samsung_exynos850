@@ -708,7 +708,10 @@ KBUILD_CFLAGS	+= -O2 $(call cc-disable-warning,maybe-uninitialized,)
 else
 KBUILD_CFLAGS   += -O2
 endif
-
+KBUILD_CFLAGS	+= $(call cc-option, -march=armv8-a+crypto+crc,)
+ifeq ($(CONFIG_SOC_EXYNOS3830), y)
+KBUILD_CFLAGS	+= $(call cc-option, -mcpu=cortex-a55+crypto+crc,)
+endif
 # Tell gcc to never replace conditional load with a non-conditional one
 KBUILD_CFLAGS	+= $(call cc-option,--param=allow-store-data-races=0)
 KBUILD_CFLAGS	+= $(call cc-option,-fno-allow-store-data-races)
