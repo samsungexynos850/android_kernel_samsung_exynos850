@@ -1,6 +1,7 @@
 show_progress(0, 0);
+ui_print("                            ");
 ui_print("----------------------------");
-ui_print("Flashing Lineage Kernel v1.0");
+ui_print("Flashing Lineage Kernel v1.1");
 ui_print("----------------------------");
 ui_print("                            ");
 ui_print("-  Developer: @RiskyGUY22  -");
@@ -11,7 +12,7 @@ ui_print("-    Device: SM-A217F/M    -");
 ui_print("                            ");
 ui_print("----------------------------");
 ui_print("                            ");
-ui_print("-        Binary: S8        -");
+ui_print("- Compatibility: universal -");
 ui_print("                            ");
 ui_print("----------------------------");
 ui_print("                            ");

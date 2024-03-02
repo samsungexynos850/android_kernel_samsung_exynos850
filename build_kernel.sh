@@ -38,7 +38,7 @@ CLEAN_PACKAGES()
 
   # Remove KernelSU from previous builds, Since ROM development doesn't like built in kernelSU
   rm -rf $(pwd)/drivers/kernelsu
-  rm -rf $(pwd)/KernelSU
+  rm -rf $(pwd)/kernelsu
   sed -i '/source "drivers\/kernelsu\/Kconfig"/d' drivers/Kconfig
   sed -i '/obj-\$(CONFIG_KSU) += kernelsu\//d' drivers/Makefile
 }
