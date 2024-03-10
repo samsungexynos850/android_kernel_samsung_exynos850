@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2017 Samsung Electronics, Inc.
+ * Copyright (C) 2012-2020, Samsung Electronics Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -11,9 +11,13 @@
  * GNU General Public License for more details.
  */
 
-#ifndef __TZDEV_TZDEV_H__
-#define __TZDEV_TZDEV_H__
+#ifndef __TZ_UMEM_H__
+#define __TZ_UMEM_H__
 
-unsigned int tzdev_is_up(void);
+#include <linux/kconfig.h>
 
-#endif /* __TZDEV_TZDEV_H__ */
+#if IS_MODULE(CONFIG_TZDEV)
+int tzdev_mem_init_call(void);
+#endif
+
+#endif /* __TZ_UMEM_H__ */

@@ -370,7 +370,7 @@ KBUILD_HOSTLDLIBS   := $(HOST_LFS_LIBS) $(HOSTLDLIBS)
 
 # Make variables (CC, etc...)
 AS		= $(CROSS_COMPILE)as
-LD		= $(CROSS_COMPILE)ld.lld
+LD		= $(CROSS_COMPILE)ld
 CC              = $(HOME)/toolchains/gcc-4.9/clang/host/linux-x86/clang-r353983c/bin/clang
 CPP		= $(CC) -E
 AR		= $(CROSS_COMPILE)ar
