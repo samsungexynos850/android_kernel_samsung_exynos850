@@ -10,6 +10,8 @@
 
 #include "lkc.h"
 
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 static const char nohelp_text[] = "There is no help available for this option.";
 
 struct menu rootmenu;
@@ -118,10 +120,10 @@ void menu_set_type(int type)
 		sym->type = type;
 		return;
 	}
-	menu_warn(current_entry,
-		"ignoring type redefinition of '%s' from '%s' to '%s'",
-		sym->name ? sym->name : "<choice>",
-		sym_type_name(sym->type), sym_type_name(type));
+//	menu_warn(current_entry,
+//		"ignoring type redefinition of '%s' from '%s' to '%s'",
+//		sym->name ? sym->name : "<choice>",
+//		sym_type_name(sym->type), sym_type_name(type));
 }
 
 static struct property *menu_add_prop(enum prop_type type, char *prompt, struct expr *expr, struct expr *dep)
@@ -250,14 +252,13 @@ static void sym_check_prop(struct symbol *sym)
 					    sym->name);
 			}
 			if (sym_is_choice(sym)) {
-				struct property *choice_prop =
-					sym_get_choice_prop(sym2);
+				struct property *choice_prop = sym_get_choice_prop(sym2);
 
-				if (!choice_prop ||
-				    prop_get_symbol(choice_prop) != sym)
-					prop_warn(prop,
-						  "choice default symbol '%s' is not contained in the choice",
-						  sym2->name);
+//				if (!choice_prop ||
+//				    prop_get_symbol(choice_prop) != sym)
+//					prop_warn(prop,
+//						  "choice default symbol '%s' is not contained in the choice",
+//						  sym2->name);
 			}
 			break;
 		case P_SELECT:
@@ -500,14 +501,14 @@ void menu_finalize(struct menu *parent)
 			if (!menu->prompt)
 				menu_warn(menu, "choice value must have a prompt");
 			for (prop = menu->sym->prop; prop; prop = prop->next) {
-				if (prop->type == P_DEFAULT)
-					prop_warn(prop, "defaults for choice "
-						  "values not supported");
+//				if (prop->type == P_DEFAULT)
+//					prop_warn(prop, "defaults for choice "
+//						  "values not supported");
 				if (prop->menu == menu)
 					continue;
-				if (prop->type == P_PROMPT &&
-				    prop->menu->parent->sym != sym)
-					prop_warn(prop, "choice value used outside its choice group");
+//				if (prop->type == P_PROMPT &&
+//				    prop->menu->parent->sym != sym)
+//					prop_warn(prop, "choice value used outside its choice group");
 			}
 			/* Non-tristate choice values of tristate choices must
 			 * depend on the choice being set to Y. The choice
