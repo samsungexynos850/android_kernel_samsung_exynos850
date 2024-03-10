@@ -1,12 +1,12 @@
 /dts-v1/;
 
 / {
-	compatible = "SAMSUNG", " A21S_KOR_SINGLE", " EXYNOS850";
+	compatible = "SAMSUNG", " A21S_EUR_OPEN", " EXYNOS850";
 	dtbo-hw_rev = <0x03>;
 	dtbo-hw_rev_end = <0x05>;
 
 	fragment@smd {
-		target-path = "/";
+		target-path = [2f 00];
 
 		__overlay__ {
 
@@ -210,6 +210,8 @@
 					battery,rp_current_abnormal_rp3 = <0x708>;
 					battery,pd_charging_charge_power = <0x3a98>;
 					battery,max_charging_current = <0x960>;
+					battery,store_mode_charging_max = <0x46>;
+					battery,store_mode_charging_min = <0x3c>;
 					battery,wireless_cc_cv = <0x55>;
 					battery,wireless_otg_input_current = <0x384>;
 					battery,age_data = <0x00 0x10fe 0x10b8 0x109a 0x5d 0x12c 0x10ea 0x10a4 0x1086 0x5c 0x190 0x10d6 0x1090 0x1072 0x5b 0x2bc 0x10c2 0x107c 0x105e 0x5a 0x3e8 0x1090 0x104a 0x102c 0x59>;
@@ -217,8 +219,8 @@
 					battery,max_input_current = <0xbb8>;
 					battery,cisd_alg_index = <0x08>;
 					battery,cisd_max_voltage_thr = <0x1388>;
-					battery,ignore_cisd_index = <0x00 0x3c0>;
-					battery,ignore_cisd_index_d = <0x00 0x78>;
+					battery,ignore_cisd_index = <0x00 0x00>;
+					battery,ignore_cisd_index_d = <0x00 0x50>;
 					battery,expired_time = <0x35e8>;
 					battery,recharging_expired_time = <0x1518>;
 					battery,battery_full_capacity = <0x1388>;
@@ -607,13 +609,14 @@
 				wtsr_timer_val = <0x03>;
 				smpl_timer_val = <0x00>;
 				check_jigon = <0x00>;
+				pmic_loop_bw;
 				init_time,sec = <0x00>;
 				init_time,min = <0x00>;
 				init_time,hour = <0x0c>;
 				init_time,mday = <0x01>;
 				init_time,mon = <0x00>;
-				init_time,year = <0x78>;
-				init_time,wday = <0x03>;
+				init_time,year = <0x79>;
+				init_time,wday = <0x05>;
 
 				s2mpu12-keys {
 
@@ -1069,7 +1072,7 @@
 	};
 
 	fragment@modemif {
-		target-path = "/";
+		target-path = [2f 00];
 
 		__overlay__ {
 			#address-cells = <0x02>;
@@ -1546,7 +1549,7 @@
 	};
 
 	fragment@inputbooster {
-		target-path = "/";
+		target-path = [2f 00];
 
 		__overlay__ {
 
@@ -1709,7 +1712,7 @@
 	};
 
 	fragment@common {
-		target-path = "/";
+		target-path = [2f 00];
 
 		__overlay__ {
 			#address-cells = <0x02>;
@@ -1735,6 +1738,8 @@
 					phandle = <0x72>;
 
 					vbmeta {
+						compatible = "android,vbmeta";
+						parts = "vbmeta,boot,system,vendor,product,odm,prism,optics,vbmeta_samsung,recovery,dtbo,keystorage";
 					};
 				};
 			};
@@ -2825,7 +2830,7 @@
 	};
 
 	fragment@model {
-		target-path = "/";
+		target-path = [2f 00];
 
 		__overlay__ {
 			#address-cells = <0x02>;
@@ -2863,7 +2868,7 @@
 	};
 
 	fragment@lcd {
-		target-path = "/";
+		target-path = [2f 00];
 
 		__overlay__ {
 
@@ -2976,10 +2981,10 @@
 				resolution = <0x2d0 0x640>;
 				size = <0x45 0x98>;
 				timing,refresh = <0x3c>;
-				timing,h-porch = <0xfa 0xf8 0xfa>;
+				timing,h-porch = <0xf0 0xf0 0xd0>;
 				timing,v-porch = <0x05 0x1b 0x05>;
-				timing,dsi-hs-clk = <0x361>;
-				timing,pmsk = <0x02 0x10a 0x02 0x2762 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
+				timing,dsi-hs-clk = <0x33e>;
+				timing,pmsk = <0x02 0xff 0x02 0x6276 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
 				timing,dsi-escape-clk = <0x14>;
 				type_of_ddi = <0x00>;
 				dsc_en = <0x00>;
@@ -3286,7 +3291,6 @@
 			bypass-for-allpass;
 			use-fine-tuning;
 			card-init-hwacg-ctrl;
-			skip-init-mmc-scan;
 			use-runtime-pm;
 			fifo-depth = <0x40>;
 			desc-size = <0x04>;
@@ -3571,7 +3575,7 @@
 				compatible = "samsung,abox-ext-bin";
 				samsung,name = "APDV_AUDIO_SLSI.bin";
 				samsung,area = <0x01>;
-				samsung,offset = "", "e`";
+				samsung,offset = <0x656000>;
 				samsung,changable;
 				phandle = <0x78>;
 			};
@@ -3580,7 +3584,7 @@
 				compatible = "samsung,abox-ext-bin";
 				samsung,name = "SoundBoosterParam.bin";
 				samsung,area = <0x01>;
-				samsung,offset = "", "m`";
+				samsung,offset = <0x6d6000>;
 				samsung,changable;
 				phandle = <0x79>;
 			};
@@ -3944,7 +3948,7 @@
 	};
 
 	fragment@camera {
-		target-path = "/";
+		target-path = [2f 00];
 
 		__overlay__ {
 
@@ -4222,6 +4226,11 @@
 							pname = "on_i2c";
 							pin = <0x06 0x01 0x1f4>;
 						};
+
+						40 {
+							pname = "delay";
+							pin = <0x00 0x00 0x1f4>;
+						};
 					};
 
 					scenario_read_rom_off {
@@ -4241,6 +4250,11 @@
 						30 {
 							pname = "rcam_af_vdd";
 							pin = <0x05 0x00 0x00>;
+						};
+
+						40 {
+							pname = "delay";
+							pin = <0x00 0x00 0x9c40>;
 						};
 					};
 				};

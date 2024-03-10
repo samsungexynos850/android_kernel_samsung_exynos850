@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0
 dtb-y += exynos/exynos3830.dtb
-dtbo-y += samsung/a21s/a21s_kor_single_00.dtbo
-dtbo-y += samsung/a21s/a21s_kor_single_01.dtbo
-dtbo-y += samsung/a21s/a21s_kor_single_02.dtbo
-dtbo-y += samsung/a21s/a21s_kor_single_03.dtbo
-dtbo-y += samsung/a21s/a21s_kor_single_06.dtbo
+dtbo-y += samsung/a21s/a21s_eur_open_w00_r00.dtbo
+dtbo-y += samsung/a21s/a21s_eur_open_w00_r03.dtbo
+dtbo-y += samsung/a21s/a21s_eur_open_w00_r01.dtbo
+dtbo-y += samsung/a21s/a21s_eur_open_w00_r06.dtbo
+dtbo-y += samsung/a21s/a21s_eur_open_w00_r02.dtbo
 
 targets += dtbs
 DTB_LIST  := $(dtb-y) $(dtbo-y)
@@ -12,4 +12,9 @@ always    := $(DTB_LIST)
 
 dtbs: $(addprefix $(obj)/, $(DTB_LIST))
 
-clean-files := *.dtb*
+clean-files := *.dtb.reverse.dts*
+clean-files := *.dtb.dtout*
+
+clean-files := *.dtbo.reverse.dts*
+clean-files := *.dtbo.dtout*
+
