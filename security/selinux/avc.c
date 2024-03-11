@@ -34,6 +34,12 @@
 #include "avc_ss.h"
 #include "classmap.h"
 
+// [ SEC_SELINUX_PORTING_COMMON
+#ifdef SEC_SELINUX_DEBUG
+#include <linux/signal.h>
+#endif
+// ] SEC_SELINUX_PORTING_COMMON
+
 #define AVC_CACHE_SLOTS			512
 #define AVC_DEF_CACHE_THRESHOLD		512
 #define AVC_CACHE_RECLAIM		16
@@ -129,6 +135,7 @@ static inline int avc_hash(u32 ssid, u32 tsid, u16 tclass)
 	return (ssid ^ (tsid<<2) ^ (tclass<<4)) & (AVC_CACHE_SLOTS - 1);
 }
 
+#ifdef CONFIG_AUDIT
 /**
  * avc_dump_av - Display an access vector in human-readable form.
  * @tclass: target security class
@@ -197,6 +204,7 @@ static void avc_dump_query(struct audit_buffer *ab, struct selinux_state *state,
 	BUG_ON(!tclass || tclass >= ARRAY_SIZE(secclass_map));
 	audit_log_format(ab, " tclass=%s", secclass_map[tclass-1].name);
 }
+#endif
 
 /**
  * avc_init - Initialize the AVC.
@@ -452,6 +460,7 @@ error:
 
 }
 
+#ifdef CONFIG_AUDIT
 static inline u32 avc_xperms_audit_required(u32 requested,
 					struct av_decision *avd,
 					struct extended_perms_decision *xpd,
@@ -498,6 +507,7 @@ static inline int avc_xperms_audit(struct selinux_state *state,
 	return slow_avc_audit(state, ssid, tsid, tclass, requested,
 			audited, denied, result, ad);
 }
+#endif
 
 static void avc_node_free(struct rcu_head *rhead)
 {
@@ -723,6 +733,7 @@ found:
 	return node;
 }
 
+#ifdef CONFIG_AUDIT
 /**
  * avc_audit_pre_callback - SELinux specific information
  * will be called by generic audit code
@@ -787,6 +798,7 @@ noinline int slow_avc_audit(struct selinux_state *state,
 	common_lsm_audit(a, avc_audit_pre_callback, avc_audit_post_callback);
 	return 0;
 }
+#endif
 
 /**
  * avc_add_callback - Register a callback for security events.
@@ -1018,6 +1030,55 @@ static noinline int avc_denied(struct selinux_state *state,
 	if (flags & AVC_STRICT)
 		return -EACCES;
 
+// [ SEC_SELINUX_PORTING_COMMON
+#ifdef SEC_SELINUX_DEBUG
+	if ((requested & avd->auditallow) && !(avd->flags & AVD_FLAGS_PERMISSIVE)) {
+			char *scontext, *tcontext;
+			const char **perms;
+			int i, perm;
+			int rc1, rc2;
+			u32 scontext_len, tcontext_len;
+	
+			perms = secclass_map[tclass-1].perms;
+			i = 0;
+			perm = 1;
+			while (i < (sizeof(requested) * 8)) {
+				if ((perm & requested) && perms[i])
+					break;
+				i++;
+				perm <<= 1;
+			}
+	
+			rc1 = security_sid_to_context(state, ssid, &scontext, &scontext_len);
+			rc2 = security_sid_to_context(state, tsid, &tcontext, &tcontext_len);
+	
+			if (rc1 || rc2) {
+				pr_err("SELinux DEBUG : %s: ssid=%d tsid=%d tclass=%s perm=%s requested(%d) auditallow(%d)\n",
+			       __func__, ssid, tsid, secclass_map[tclass-1].name, perms[i], requested, avd->auditallow);
+			} else {
+				pr_err("SELinux DEBUG : %s: scontext=%s tcontext=%s tclass=%s perm=%s requested(%d) auditallow(%d)\n",
+			       __func__, scontext, tcontext, secclass_map[tclass-1].name, perms[i], requested, avd->auditallow);
+			}
+
+    		/* print call stack */
+    		pr_err("SELinux DEBUG : FATAL denial and start dump_stack\n");
+	    	dump_stack();
+
+		    /* enforcing : SIGABRT and take debuggerd log */
+            if (!(avd->flags & AVD_FLAGS_PERMISSIVE)) {
+			    pr_err("SELinux DEBUG : send SIGABRT to current tsk\n");
+			    send_sig(SIGABRT, current, 2);
+		    }
+
+		    if (!rc1)
+			    kfree(scontext);
+	        if (!rc2)
+			    kfree(tcontext);
+
+	}
+#endif
+// ] SEC_SELINUX_PORTING_COMMON
+
 	if (enforcing_enabled(state) &&
 	    !(avd->flags & AVD_FLAGS_PERMISSIVE))
 		return -EACCES;
@@ -1103,10 +1164,12 @@ decision:
 
 	rcu_read_unlock();
 
+#ifdef CONFIG_AUDIT
 	rc2 = avc_xperms_audit(state, ssid, tsid, tclass, requested,
 			&avd, xpd, xperm, rc, ad);
 	if (rc2)
 		return rc2;
+#endif
 	return rc;
 }
 
@@ -1185,10 +1248,12 @@ int avc_has_perm(struct selinux_state *state, u32 ssid, u32 tsid, u16 tclass,
 	rc = avc_has_perm_noaudit(state, ssid, tsid, tclass, requested, 0,
 				  &avd);
 
+#ifdef CONFIG_AUDIT
 	rc2 = avc_audit(state, ssid, tsid, tclass, requested, &avd, rc,
 			auditdata, 0);
 	if (rc2)
 		return rc2;
+#endif
 	return rc;
 }
 
@@ -1204,10 +1269,12 @@ int avc_has_perm_flags(struct selinux_state *state,
 				  (flags & MAY_NOT_BLOCK) ? AVC_NONBLOCKING : 0,
 				  &avd);
 
+#ifdef CONFIG_AUDIT
 	rc2 = avc_audit(state, ssid, tsid, tclass, requested, &avd, rc,
 			auditdata, flags);
 	if (rc2)
 		return rc2;
+#endif
 	return rc;
 }
 

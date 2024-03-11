@@ -20,6 +20,14 @@
 #include "av_permissions.h"
 #include "security.h"
 
+// [ SEC_SELINUX_PORTING_COMMON
+#ifdef CONFIG_SECURITY_SELINUX_DEVELOP
+extern int selinux_enforcing;
+#else
+#define selinux_enforcing 1
+#endif
+// ] SEC_SELINUX_PORTING_COMMON
+
 /*
  * An entry in the AVC.
  */
@@ -61,6 +69,7 @@ struct selinux_audit_data {
 
 void __init avc_init(void);
 
+#ifdef CONFIG_AUDIT
 static inline u32 avc_audit_required(u32 requested,
 			      struct av_decision *avd,
 			      int result,
@@ -141,6 +150,7 @@ static inline int avc_audit(struct selinux_state *state,
 			      requested, audited, denied, result,
 			      a);
 }
+#endif
 
 #define AVC_STRICT 1 /* Ignore permissive mode. */
 #define AVC_EXTENDED_PERMS 2	/* update extended permissions */
