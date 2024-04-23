@@ -32,7 +32,6 @@ EXPORT_SYMBOL(cad_pid);
 #define DEFAULT_REBOOT_MODE
 #endif
 enum reboot_mode reboot_mode DEFAULT_REBOOT_MODE;
-enum reboot_mode panic_reboot_mode = REBOOT_UNDEFINED;
 
 /*
  * This variable is used privately to keep track of whether or not
@@ -526,8 +525,6 @@ EXPORT_SYMBOL_GPL(orderly_reboot);
 static int __init reboot_setup(char *str)
 {
 	for (;;) {
-		enum reboot_mode *mode;
-
 		/*
 		 * Having anything passed on the command line via
 		 * reboot= will cause us to disable DMI checking
@@ -535,24 +532,17 @@ static int __init reboot_setup(char *str)
 		 */
 		reboot_default = 0;
 
-		if (!strncmp(str, "panic_", 6)) {
-			mode = &panic_reboot_mode;
-			str += 6;
-		} else {
-			mode = &reboot_mode;
-		}
-
 		switch (*str) {
 		case 'w':
-			*mode = REBOOT_WARM;
+			reboot_mode = REBOOT_WARM;
 			break;
 
 		case 'c':
-			*mode = REBOOT_COLD;
+			reboot_mode = REBOOT_COLD;
 			break;
 
 		case 'h':
-			*mode = REBOOT_HARD;
+			reboot_mode = REBOOT_HARD;
 			break;
 
 		case 's':
@@ -569,11 +559,11 @@ static int __init reboot_setup(char *str)
 				if (rc)
 					return rc;
 			} else
-				*mode = REBOOT_SOFT;
+				reboot_mode = REBOOT_SOFT;
 			break;
 		}
 		case 'g':
-			*mode = REBOOT_GPIO;
+			reboot_mode = REBOOT_GPIO;
 			break;
 
 		case 'b':

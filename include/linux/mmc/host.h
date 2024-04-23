@@ -384,7 +384,9 @@ struct mmc_host {
 #define MMC_CAP2_CQE		(1 << 23)	/* Has eMMC command queue engine */
 #define MMC_CAP2_CQE_DCMD	(1 << 24)	/* CQE can issue a direct command */
 #define MMC_CAP2_AVOID_3_3V	(1 << 25)	/* Host must negotiate down from 3.3V */
-#define MMC_CAP2_CRYPTO		(1 << 27)	/* Host supports inline encryption */
+#define MMC_CAP2_SKIP_INIT_SCAN	(1 << 26)       /* skip init mmc scan */
+#define MMC_CAP2_SKIP_INIT_NOT_TRAY	(1 << 27)	/* Skip init when to not tray detect */
+#define MMC_CAP2_DETECT_ON_ERR	(1 << 28)	/* On I/O err check card removal */
 
 	int			fixed_drv_type;	/* fixed driver type for non-removable media */
 
@@ -483,9 +485,6 @@ struct mmc_host {
 	int			cqe_qdepth;
 	bool			cqe_enabled;
 	bool			cqe_on;
-#ifdef CONFIG_MMC_CRYPTO
-	struct keyslot_manager	*ksm;
-#endif /* CONFIG_MMC_CRYPTO */
 
 	int (*sdcard_uevent)(struct mmc_card *card);
 	unsigned long		private[0] ____cacheline_aligned;

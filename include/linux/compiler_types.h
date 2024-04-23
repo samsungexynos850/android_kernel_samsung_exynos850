@@ -144,10 +144,6 @@ struct ftrace_likely_data {
 #define __visible
 #endif
 
-#ifndef __noscs
-# define __noscs
-#endif
-
 /*
  * Assume alignment of return value.
  */
@@ -226,7 +222,7 @@ struct ftrace_likely_data {
 #define __section(S)		__attribute__((__section__(#S)))
 
 
-#if defined(CONFIG_ENABLE_MUST_CHECK) && !defined(__GENKSYMS__)
+#ifdef CONFIG_ENABLE_MUST_CHECK
 #define __must_check		__attribute__((warn_unused_result))
 #else
 #define __must_check

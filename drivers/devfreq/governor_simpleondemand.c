@@ -48,7 +48,15 @@ static int devfreq_simple_ondemand_func(struct devfreq *df,
 	unsigned int dfso_multiplication_weight = DFSO_WEIGHT;
 	struct devfreq_simple_ondemand_data *data = df->data;
 	unsigned long max = (df->max_freq) ? df->max_freq : UINT_MAX;
-	unsigned long min = (df->min_freq) ? df->min_freq : 0;
+	unsigned long pm_qos_min = 0;
+
+	if (data && !df->disabled_pm_qos) {
+		pm_qos_min = pm_qos_request(data->pm_qos_class);
+		if (pm_qos_min >= data->cal_qos_max) {
+			*freq = pm_qos_min;
+			return 0;
+		}
+	}
 
 
 	stat = &df->last_status;
@@ -74,29 +82,25 @@ static int devfreq_simple_ondemand_func(struct devfreq *df,
 	    dfso_upthreshold < dfso_downdifferential)
 		return -EINVAL;
 
+	if (data && data->cal_qos_max)
+		max = (df->max_freq) ? df->max_freq : 0;
+
+	/* Assume MAX if it is going to be divided by zero */
+	if (stat->total_time == 0) {
+		if (data && data->cal_qos_max)
+			max = max3(max, data->cal_qos_max, pm_qos_min);
+		*freq = max;
+		return 0;
+	}
+
 	/* Prevent overflow */
 	if (stat->busy_time >= (1 << 24) || stat->total_time >= (1 << 24)) {
 		stat->busy_time >>= 7;
 		stat->total_time >>= 7;
 	}
 
-	if (data && data->simple_scaling) {
-		if (stat->busy_time * 100 >
-		    stat->total_time * dfso_upthreshold)
-			*freq = max;
-		else if (stat->busy_time * 100 <
-		    stat->total_time * dfso_downdifferential)
-			*freq = min;
-		else
-			*freq = df->previous_freq;
-		return 0;
-	}
-
-	/* Assume MAX if it is going to be divided by zero */
-	if (stat->total_time == 0) {
-		*freq = max;
-		return 0;
-	}
+	stat->busy_time *= dfso_multiplication_weight;
+	stat->busy_time = div64_u64(stat->busy_time, 100);
 
 	/* Set MAX if it's busy enough */
 	if (stat->busy_time * 100 >
