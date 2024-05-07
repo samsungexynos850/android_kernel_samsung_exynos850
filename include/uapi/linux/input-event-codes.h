@@ -812,9 +812,12 @@
 #define SW_ROTATE_LOCK		0x0c  /* set = rotate locked/disabled */
 #define SW_LINEIN_INSERT	0x0d  /* set = inserted */
 #define SW_MUTE_DEVICE		0x0e  /* set = device disabled */
-#define SW_GLOVE		0x0f	/* set = glove mode */
-#define SW_FLIP                 0x15    /* set = flip cover */
-#define SW_CERTIFYHALL          0x1b    /* set = certify_hall... */
+#define SW_PEN_INSERTED		0x0f  /* set = pen inserted */
+#define SW_MACHINE_COVER	0x10  /* set = cover closed */
+#define SW_HPHL_OVERCURRENT	0x11  /* set = over current on left hph */
+#define SW_HPHR_OVERCURRENT	0x12  /* set = over current on right hph */
+#define SW_MICROPHONE2_INSERT	0x13  /* set = inserted */
+#define SW_UNSUPPORT_INSERT	0x14  /* set = unsupported device inserted */
 #define SW_MAX			0x20
 
 #define SW_CNT			(SW_MAX+1)

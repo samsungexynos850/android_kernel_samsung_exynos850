@@ -39,7 +39,7 @@ extern int ignore_fs_panic;
 extern void (*ufs_debug_func)(void *);
 
 #define f2fs_bug_on(sbi, condition)	  __f2fs_bug_on(sbi, condition, true)
-#define f2fs_bug_on_endio(sbi, condition) __f2fs_bug_on(sbi, condition, false)	
+#define f2fs_bug_on_endio(sbi, condition) __f2fs_bug_on(sbi, condition, false)
 #define __f2fs_bug_on(sbi, condition, set_extra_blk)				\
 	do {									\
 		if (unlikely(condition)) {					\
@@ -3934,6 +3934,12 @@ static inline bool f2fs_force_buffered_io(struct inode *inode,
 	if (f2fs_post_read_required(inode) && !fscrypt_disk_encrypted(inode))
 		return true;
 	if (sbi->s_ndevs)
+        return true;
+	if (fsverity_active(inode))
+		return true;
+	if (f2fs_compressed_file(inode))
+		return true;
+	if (f2fs_is_multi_device(sbi))
 		return true;
 	/*
 	 * for blkzoned device, fallback direct IO to buffered IO, so
