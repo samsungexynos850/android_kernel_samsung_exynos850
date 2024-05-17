@@ -1541,21 +1541,15 @@ static int s2mu106_chg_set_property(struct power_supply *psy,
 		}
 		break;
 	case POWER_SUPPLY_PROP_ENERGY_AVG:
-		mutex_lock(&charger->charger_mutex);
-		if (charger->otg_on) {
-			pr_info("[DEBUG]%s: OTG enabled, Skip charger driver control in FLED\n", __func__);
+		regmode_vote(charger, REG_MODE_BUCK_OFF_FOR_FLASH, REG_MODE_BUCK_OFF_FOR_FLASH);
+		if (val->intval) {
+			pr_info("[DEBUG]%s: FLED turn on charger driver\n", __func__);
+			usleep_range(1000, 1100);
+		//	regmode_vote(charger, REG_MODE_BUCK_OFF_FOR_FLASH | REG_MODE_BST, REG_MODE_BST);
 		} else {
-			regmode_vote(charger, REG_MODE_BUCK_OFF_FOR_FLASH, REG_MODE_BUCK_OFF_FOR_FLASH);
-			if (val->intval) {
-				pr_info("[DEBUG]%s: FLED turn on charger driver\n", __func__);
-				usleep_range(1000, 1100);
-				//	regmode_vote(charger, REG_MODE_BUCK_OFF_FOR_FLASH | REG_MODE_BST, REG_MODE_BST);
-			} else {
-				pr_info("[DEBUG]%s: FLED turn off charger driver\n", __func__);
-				regmode_vote(charger, REG_MODE_BUCK_OFF_FOR_FLASH | REG_MODE_BST, 0);
-			}
+			pr_info("[DEBUG]%s: FLED turn off charger driver\n", __func__);
+			regmode_vote(charger, REG_MODE_BUCK_OFF_FOR_FLASH | REG_MODE_BST, 0);
 		}
-		mutex_unlock(&charger->charger_mutex);
 		break;
 #if defined(CONFIG_AFC_CHARGER_MODE)
 	case POWER_SUPPLY_PROP_AFC_CHARGER_MODE:
