@@ -750,14 +750,7 @@ out:
 	kfree(n);
 	kfree(t);
 
-// [ SEC_SELINUX_PORTING_COMMON
-#ifdef CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE
-    	selinux_enforcing = 1;
-#elif defined(CONFIG_SECURITY_SELINUX_ALWAYS_PERMISSIVE)
-    	selinux_enforcing = 0;
-#endif
-	
-	if (!selinux_enforcing) // SEC_SELINUX_PORTING_COMMON Change to use RKP 
+	if (!enforcing_enabled(state))
 		return 0;
 	return -EPERM;
 }
@@ -1601,15 +1594,8 @@ out:
 	kfree(s);
 	kfree(t);
 	kfree(n);
-// [ SEC_SELINUX_PORTING_COMMON
-#ifdef CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE
-	selinux_enforcing = 1;
-#elif defined(CONFIG_SECURITY_SELINUX_ALWAYS_PERMISSIVE)
-    	selinux_enforcing = 0;
-#endif
-	if (!selinux_enforcing) // SEC_SELINUX_PORTING_COMMON Change to use RKP 
-            return 0;
-// ] SEC_SELINUX_PORTING_COMMON
+	if (!enforcing_enabled(state))
+		return 0;
 	return -EACCES;
 }
 
@@ -1919,13 +1905,7 @@ static inline int convert_context_handle_invalid_context(
 	char *s;
 	u32 len;
 
-// [ SEC_SELINUX_PORTING_COMMON 
-	#ifdef CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE
-	    selinux_enforcing = 1;
-	#elif defined(CONFIG_SECURITY_SELINUX_ALWAYS_PERMISSIVE)
-	    selinux_enforcing = 0;
-	#endif
-	if (!selinux_enforcing) // SEC_SELINUX_PORTING_COMMON Change to use RKP
+	if (enforcing_enabled(state))
 		return -EINVAL;
 
 	if (!context_struct_to_string(policydb, context, &s, &len)) {
