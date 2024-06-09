@@ -401,4 +401,3 @@ extern void hashtab_cache_init(void);
 extern void selinux_nlmsg_init(void);
 
 #endif /* _SELINUX_SECURITY_H_ */
-#endif
