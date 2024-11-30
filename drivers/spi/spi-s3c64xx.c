@@ -595,6 +595,7 @@ static void enable_datapath(struct s3c64xx_spi_driver_data *sdd,
 
 	writel(modecfg, regs + S3C64XX_SPI_MODE_CFG);
 	writel(chcfg, regs + S3C64XX_SPI_CH_CFG);
+
 }
 
 static inline void enable_cs(struct s3c64xx_spi_driver_data *sdd,
@@ -734,8 +735,8 @@ static void s3c64xx_spi_config(struct s3c64xx_spi_driver_data *sdd)
 {
 	struct s3c64xx_spi_info *sci = sdd->cntrlr_info;
 	void __iomem *regs = sdd->regs;
-	u32 val;
 	int ret;
+	u32 val;
 
 	/* Disable Clock */
 	if (!sdd->port_conf->clk_from_cmu) {
@@ -939,7 +940,7 @@ static int s3c64xx_spi_transfer_one_message(struct spi_master *master,
 		sdd->cur_bpw = spi->bits_per_word;
 		sdd->cur_speed = spi->max_speed_hz;
 		sdd->cur_mode = spi->mode;
-		s3c64xx_spi_config(sdd);
+        s3c64xx_spi_config(sdd);
 	}
 
 	if (!(msg->is_dma_mapped) && (sci->dma_mode == DMA_MODE))

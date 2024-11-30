@@ -1312,8 +1312,9 @@ static int exynos_iommu_of_xlate(struct device *master,
 		}
 
 		owner = kzalloc(sizeof(*owner), GFP_KERNEL);
-		if (!owner)
+		if (!owner) {
 			return -ENOMEM;
+		}
 
 		owner->domain = domain;
 		owner->vmm_data = vmm_data;
