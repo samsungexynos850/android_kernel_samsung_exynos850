@@ -2491,7 +2491,7 @@ static int s2mu106_muic_probe(struct platform_device *pdev)
 			wakeup_source_add(muic_data->muic_ws);
 	}
 #else
-	muic_data->muic_ws = wakeup_source_register(NULL, "muic_wake"); // 5.4 R
+	muic_data->muic_ws = wakeup_source_register("muic_wake"); // 5.4 R
 #endif
 
 	platform_set_drvdata(pdev, muic_data);

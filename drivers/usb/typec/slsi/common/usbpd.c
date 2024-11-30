@@ -718,7 +718,7 @@ int usbpd_init(struct device *dev, void *phy_driver_data)
 			wakeup_source_add(pd_data->policy_wake);
 	}
 #else
-	pd_data->policy_wake = wakeup_source_register(NULL, "policy_wake"); // 5.4 R
+	pd_data->policy_wake = wakeup_source_register("policy_wake"); // 5.4 R
 #endif
 
 	pd_data->policy_wqueue =

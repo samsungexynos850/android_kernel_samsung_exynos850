@@ -1593,10 +1593,8 @@ int mmc_set_uhs_voltage(struct mmc_host *host, u32 ocr)
 	cmd.flags = MMC_RSP_R1 | MMC_CMD_AC;
 
 	err = mmc_wait_for_cmd(host, &cmd, 0);
-	if (err) {
-		err = -EAGAIN;
+	if (err)
 		goto power_cycle;
-	}
 
 	if (!mmc_host_is_spi(host) && (cmd.resp[0] & R1_ERROR))
 		return -EIO;

@@ -719,9 +719,9 @@ int et5xx_platformInit(struct et5xx_data *etspi)
 #endif
 #else
 	/* 5.4 R */
-	etspi->fp_signal_lock = wakeup_source_register(etspi->dev, "et5xx_sigwake_lock");
+	etspi->fp_signal_lock = wakeup_source_register("et5xx_sigwake_lock");
 #ifdef ENABLE_SENSORS_FPRINT_SECURE
-	etspi->clk_setting->spi_wake_lock = wakeup_source_register(etspi->dev, "et5xx_wake_lock");
+	etspi->clk_setting->spi_wake_lock = wakeup_source_register("et5xx_wake_lock");
 #endif
 #endif
 
