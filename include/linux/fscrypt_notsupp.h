@@ -254,17 +254,10 @@ static inline const char *fscrypt_get_symlink(struct inode *inode,
 	return ERR_PTR(-EOPNOTSUPP);
 }
 
-static inline int fscrypt_disk_encrypted(const struct inode *inode)
+static inline int fscrypt_symlink_getattr(const struct path *path,
+					  struct kstat *stat)
 {
-	return 0;
+	return -EOPNOTSUPP;
 }
 
-static inline void fscrypt_set_bio(const struct inode *inode, struct bio *bio, u64 dun)
-{
-}
-
-static inline void *fscrypt_get_diskcipher(const struct inode *inode)
-{
-	return NULL;
-}
 #endif	/* _LINUX_FSCRYPT_NOTSUPP_H */
