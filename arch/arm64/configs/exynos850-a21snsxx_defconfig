@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 4.19.246 Kernel Configuration
+# Linux/arm64 4.19.261 Kernel Configuration
 #
 
 #
@@ -2153,6 +2153,7 @@ CONFIG_EXYRNG_USE_CRYPTOMANAGER=y
 # CONFIG_RAW_DRIVER is not set
 # CONFIG_TCG_TPM is not set
 # CONFIG_XILLYBUS is not set
+CONFIG_RANDOM_TRUST_BOOTLOADER=y
 
 #
 # I2C support

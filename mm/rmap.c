@@ -404,7 +404,6 @@ void unlink_anon_vmas(struct vm_area_struct *vma)
 	}
 	if (vma->anon_vma)
 		vma->anon_vma->num_active_vmas--;
-
 	unlock_anon_vma_root(root);
 
 	/*
