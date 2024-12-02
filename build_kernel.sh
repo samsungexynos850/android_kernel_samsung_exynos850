@@ -7,6 +7,6 @@ export ANDROID_MAJOR_VERSION=s
 export ARCH=arm64
 
 mkdir out
-make ARCH=arm64 O=out CROSS_COMPILE=aarch64-linux-androidkernel- CC=clang CLANG_TRIPLE=aarch64-linux-gnu- exynos850-a21snsxx_defconfig
-make ARCH=arm64 O=out CROSS_COMPILE=aarch64-linux-androidkernel- CC=clang CLANG_TRIPLE=aarch64-linux-gnu- -j64
+make ARCH=arm64 O=out CROSS_COMPILE=aarch64-linux-androidkernel- CLANG_TRIPLE=aarch64-linux-gnu- exynos850-a21snsxx_defconfig
+make ARCH=arm64 O=out CROSS_COMPILE=aarch64-linux-androidkernel- CLANG_TRIPLE=aarch64-linux-gnu- -j64
 
