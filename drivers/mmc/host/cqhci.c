@@ -306,7 +306,6 @@ static void __cqhci_enable(struct cqhci_host *cq_host)
 	struct mmc_host *mmc = cq_host->mmc;
 	u32 cqcfg;
 	u32 reg;
-	u32 ctl;
 
 	cqhci_writel(cq_host, 0x0, CQHCI_DATAINTMASK1);
 	cqhci_writel(cq_host, 0x0, CQHCI_CMDINTMASK2);

@@ -625,62 +625,6 @@ static int tx_task(struct eth_dev *dev, struct usb_request *req)
 	return retval;
 }
 
-static enum hrtimer_restart tx_timeout(struct hrtimer *data)
-{
-	struct eth_dev *dev = container_of(data, struct eth_dev, tx_timer);
-	struct usb_request *req = NULL;
-
-	int retval;
-	unsigned long flags;
-
-	spin_lock_irqsave(&dev->tx_req_lock, flags);
-
-	/*
-	* this freelist can be empty if an interrupt triggered disconnect()
-	* and reconfigured the gadget (shutting down this queue) after the
-	* network stack decided to xmit but before we got the spinlock.
-	*/
-
-	if (list_empty(&dev->tx_reqs)) {
-		spin_unlock_irqrestore(&dev->tx_req_lock, flags);
-		return HRTIMER_NORESTART;
-	}
-
-	req = container_of(dev->tx_reqs.next, struct usb_request, list);
-
-	list_del(&req->list);
-
-	/* temporarily stop TX queue when the freelist empties */
-	if (list_empty(&dev->tx_reqs))
-		netif_stop_queue(dev->net);
-
-	spin_unlock_irqrestore(&dev->tx_req_lock, flags);
-
-	dev->occured_timeout = 1;
-	retval = tx_task(dev, req);
-	switch (retval) {
-		default:
-			DBG(dev, "tx queue err %d\n", retval);
-			break;
-#if 0
-		case 0:
-			dev->net->trans_start = jiffies;
-#endif
-	}
-
-    if (retval) {
-		req->length = 0;
-		dev->net->stats.tx_dropped++;
-		spin_lock_irqsave(&dev->tx_req_lock, flags);
-		if (list_empty(&dev->tx_reqs))
-			netif_start_queue(dev->net);
-		list_add(&req->list, &dev->tx_reqs);
-		spin_unlock_irqrestore(&dev->tx_req_lock, flags);
-	}
-
-	return HRTIMER_NORESTART;
-}
-
 static netdev_tx_t eth_start_xmit(struct sk_buff *skb,
 					struct net_device *net)
 {
