@@ -1780,7 +1780,7 @@ int secdbg_show_busy_task(unsigned int cpu, unsigned long long duration, int cou
 	return is_busy;
 }
 
-struct task_struct *get_the_busiest_task()
+struct task_struct *get_the_busiest_task(void)
 {
 	struct busy_info *info;
 

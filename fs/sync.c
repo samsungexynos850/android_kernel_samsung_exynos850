@@ -73,7 +73,7 @@ static inline struct interruptible_sync_work *INTR_SYNC_WORK(struct work_struct 
 	return container_of(work, struct interruptible_sync_work, work);
 }
 
-static inline int sec_sys_sync() {
+static inline int sec_sys_sync(void) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
 	ksys_sync();
 	return 0;

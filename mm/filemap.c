@@ -2529,7 +2529,7 @@ static void filemap_systrace_mark_begin(struct file *file,
 	systrace_mark_begin("%d , %s , %lu , %d", sync, path, offset, size);
 }
 
-static void filemap_systrace_mark_end()
+static void filemap_systrace_mark_end(void)
 {
     systrace_mark_end();
 }
