@@ -453,7 +453,7 @@ static int ext4_file_open(struct inode * inode, struct file * filp)
 	if (ret)
 		return ret;
 
-	ret = fscrypt_file_open(inode, filp);
+	ret = fsverity_file_open(inode, filp);
 	if (ret)
 		return ret;
 
