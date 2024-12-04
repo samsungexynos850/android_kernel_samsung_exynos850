@@ -613,6 +613,9 @@ struct inode {
 #ifdef CONFIG_SECURITY
 	void			*i_security;
 #endif
+#ifdef CONFIG_FS_VERITY
+    struct fsverity_info    *i_verity_info;
+#endif
 
 	/* Stat data, not accessed from path walking */
 	unsigned long		i_ino;
@@ -1398,6 +1401,9 @@ struct super_block {
 #if IS_ENABLED(CONFIG_FS_ENCRYPTION)
 	const struct fscrypt_operations	*s_cop;
 #endif
+#ifdef CONFIG_FS_VERITY
+    const struct fsverity_operations *s_vop;
+#endif
 	struct hlist_bl_head	s_roots;	/* alternate root dentries for NFS */
 	struct list_head	s_mounts;	/* list of mounts; _not_ for fs use */
 	struct block_device	*s_bdev;
@@ -1937,7 +1943,9 @@ struct super_operations {
 #else
 #define S_DAX		0	/* Make all the DAX code disappear */
 #endif
+#define IS_VERITY(inode)   ((inode)->i_flags & S_VERITY)
 #define S_ENCRYPTED	16384	/* Encrypted file (using fs/crypto/) */
+#define S_VERITY    65536   /* Verity file (using fs/verity/) */
 
 /*
  * Note that nosuid etc flags are inode-specific: setting some file-system
