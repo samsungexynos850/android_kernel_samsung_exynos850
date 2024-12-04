@@ -306,4 +306,5 @@ static inline bool ida_is_empty(const struct ida *ida)
 
 /* in lib/radix-tree.c */
 int ida_pre_get(struct ida *ida, gfp_t gfp_mask);
+void ida_remove(struct ida *ida, int id);
 #endif /* __IDR_H__ */

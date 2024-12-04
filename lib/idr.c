@@ -449,7 +449,7 @@ static int ida_get_new_above(struct ida *ida, int start)
 	}
 }
 
-static void ida_remove(struct ida *ida, int id)
+void ida_remove(struct ida *ida, int id)
 {
 	unsigned long index = id / IDA_BITMAP_BITS;
 	unsigned offset = id % IDA_BITMAP_BITS;
