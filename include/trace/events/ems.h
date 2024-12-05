@@ -203,6 +203,7 @@ TRACE_EVENT(frt_select_task_rq,
 /*
  * Tracepoint for accounting load averages for sched_entity of rt
  */
+#ifdef CONFIG_SCHED_USE_FLUID_RT
 TRACE_EVENT(frt_load_rt_se,
 
 	TP_PROTO(struct sched_rt_entity *se),
@@ -244,10 +245,13 @@ TRACE_EVENT(frt_load_rt_se,
 		  (u32)__entry->util_sum,
 		  (u32)__entry->period_contrib)
 );
+#endif
 
 /*
  * Tracepoint for accounting load averages for rq of rt
  */
+#if 0
+#ifdef CONFIG_SCHED_USE_FLUID_RT
 TRACE_EVENT(frt_load_rt_rq,
 
 	TP_PROTO(struct rt_rq *rt_rq),
@@ -270,6 +274,8 @@ TRACE_EVENT(frt_load_rt_rq,
 	TP_printk("cpu=%d load=%lu util=%lu",
 		  __entry->cpu, __entry->load, __entry->util)
 );
+#endif
+#endif
 
 /*
  * Tracepoint for accounting multi load for tasks
