@@ -19,9 +19,7 @@ menuconfig MALI_DDK_VERSION
 choice
 	prompt "version Configuration"
 	depends on MALI_DDK_VERSION
-	default MALI_BIFROST_R32P1 if $(PLATFORM_VERSION) >= 12
-	default MALI_BIFROST_R26P0 if $(PLATFORM_VERSION) = 11
-	default MALI_BIFROST_R19P0 if $(PLATFORM_VERSION) < 11
+	default MALI_BIFROST_R32P1
 	help
 	  Select the gpu support version.
 config MALI_BIFROST_R19P0
