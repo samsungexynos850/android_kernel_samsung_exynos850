@@ -1261,8 +1261,8 @@ static long ffs_epfile_ioctl(struct file *file, unsigned code,
 		struct usb_endpoint_descriptor desc1, *desc;
 
 		switch (epfile->ffs->gadget->speed) {
-		case USB_SPEED_SUPER:
 		case USB_SPEED_SUPER_PLUS:
+		case USB_SPEED_SUPER:
 			desc_idx = 2;
 			break;
 		case USB_SPEED_HIGH:
@@ -2981,6 +2981,7 @@ static inline struct f_fs_opts *ffs_do_functionfs_bind(struct usb_function *f,
 		container_of(f->fi, struct f_fs_opts, func_inst);
 	struct ffs_data *ffs_data;
 	int ret;
+	int retries = 100;
 
 	ENTER();
 
@@ -2991,12 +2992,18 @@ static inline struct f_fs_opts *ffs_do_functionfs_bind(struct usb_function *f,
 	 *
 	 * Configfs-enabled gadgets however do need ffs_dev_lock.
 	 */
-	if (!ffs_opts->no_configfs)
-		ffs_dev_lock();
-	ret = ffs_opts->dev->desc_ready ? 0 : -ENODEV;
-	ffs_data = ffs_opts->dev->ffs_data;
-	if (!ffs_opts->no_configfs)
-		ffs_dev_unlock();
+	do {
+		if (!ffs_opts->no_configfs)
+			ffs_dev_lock();
+		ret = ffs_opts->dev->desc_ready ? 0 : -ENODEV;
+		ffs_data = ffs_opts->dev->ffs_data;
+		if (!ffs_opts->no_configfs)
+			ffs_dev_unlock();
+		if (ret)
+			msleep(20);
+		else
+			break;
+	} while (--retries);
 
 	pr_info("ffs_do_functionfs_bind %d\n", ret);
 

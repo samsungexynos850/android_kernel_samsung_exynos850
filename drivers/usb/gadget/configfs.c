@@ -89,8 +89,6 @@ int check_user_usb_string(const char *name,
 
 #define MAX_NAME_LEN	40
 #define MAX_USB_STRING_LANGS 2
-#define MAX_USB_STRING_LEN	126
-#define MAX_USB_STRING_WITH_NULL_LEN	(MAX_USB_STRING_LEN+1)
 
 static const struct usb_descriptor_header *otg_desc[2];
 
@@ -371,7 +369,6 @@ static int unregister_gadget(struct gadget_info *gi)
 	gi->composite.gadget_driver.udc_name = NULL;
 	return 0;
 }
-
 #ifdef CONFIG_USB_OLD_CONFIGFS
 static void clear_current_usb_link(struct usb_composite_dev *cdev)
 {
@@ -394,7 +391,6 @@ static void clear_current_usb_link(struct usb_composite_dev *cdev)
 	}
 }
 #endif
-
 static ssize_t gadget_dev_desc_UDC_store(struct config_item *item,
 		const char *page, size_t len)
 {

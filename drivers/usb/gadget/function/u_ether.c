@@ -625,6 +625,62 @@ static int tx_task(struct eth_dev *dev, struct usb_request *req)
 	return retval;
 }
 
+static enum hrtimer_restart tx_timeout(struct hrtimer *data)
+{
+	struct eth_dev *dev = container_of(data, struct eth_dev, tx_timer);
+	struct usb_request *req = NULL;
+
+	int retval;
+	unsigned long flags;
+
+	spin_lock_irqsave(&dev->tx_req_lock, flags);
+
+	/*
+	* this freelist can be empty if an interrupt triggered disconnect()
+	* and reconfigured the gadget (shutting down this queue) after the
+	* network stack decided to xmit but before we got the spinlock.
+	*/
+
+	if (list_empty(&dev->tx_reqs)) {
+		spin_unlock_irqrestore(&dev->tx_req_lock, flags);
+		return HRTIMER_NORESTART;
+	}
+
+	req = container_of(dev->tx_reqs.next, struct usb_request, list);
+
+	list_del(&req->list);
+
+	/* temporarily stop TX queue when the freelist empties */
+	if (list_empty(&dev->tx_reqs))
+		netif_stop_queue(dev->net);
+
+	spin_unlock_irqrestore(&dev->tx_req_lock, flags);
+
+	dev->occured_timeout = 1;
+	retval = tx_task(dev, req);
+	switch (retval) {
+		default:
+			DBG(dev, "tx queue err %d\n", retval);
+			break;
+#if 0
+		case 0:
+			dev->net->trans_start = jiffies;
+#endif
+	}
+
+    if (retval) {
+		req->length = 0;
+		dev->net->stats.tx_dropped++;
+		spin_lock_irqsave(&dev->tx_req_lock, flags);
+		if (list_empty(&dev->tx_reqs))
+			netif_start_queue(dev->net);
+		list_add(&req->list, &dev->tx_reqs);
+		spin_unlock_irqrestore(&dev->tx_req_lock, flags);
+	}
+
+	return HRTIMER_NORESTART;
+}
+
 static netdev_tx_t eth_start_xmit(struct sk_buff *skb,
 					struct net_device *net)
 {
@@ -1031,12 +1087,17 @@ struct eth_dev *gether_setup_name(struct usb_gadget *g,
 	} else {
 		net->addr_assign_type = NET_ADDR_SET;
 	}
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+	memcpy(dev->host_mac, ethaddr, ETH_ALEN);
+	printk(KERN_DEBUG "usb: set unique host mac\n");
+#else
 	if (get_ether_addr(host_addr, dev->host_mac))
 		dev_warn(&g->dev,
 			"using random %s ethernet address\n", "host");
 
 	if (ethaddr)
 		memcpy(ethaddr, dev->host_mac, ETH_ALEN);
+#endif
 #if 0
 //#ifdef CONFIG_USB_F_NCM
 	if (!strcmp(netname, "ncm")) {
@@ -1100,6 +1161,9 @@ struct net_device *gether_setup_name_default(const char *netname)
 	INIT_LIST_HEAD(&dev->tx_reqs);
 	INIT_LIST_HEAD(&dev->rx_reqs);
 
+	hrtimer_init(&dev->tx_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+	dev->tx_timer.function = tx_timeout;
+
 	/* by default we always have a random MAC address */
 	net->addr_assign_type = NET_ADDR_RANDOM;
 
@@ -1144,7 +1208,6 @@ int gether_register_netdev(struct net_device *net)
 {
 	struct eth_dev *dev;
 	struct usb_gadget *g;
-	struct sockaddr sa;
 	int status;
 
 	if (!net->dev.parent)
@@ -1159,7 +1222,8 @@ int gether_register_netdev(struct net_device *net)
 		dev_dbg(&g->dev, "register_netdev failed, %d\n", status);
 		return status;
 	} else {
-		INFO(dev, "HOST MAC %pM\n", dev->host_mac);
+		DBG(dev, "HOST MAC %pM\n", dev->host_mac);
+		DBG(dev, "MAC %pM\n", dev->dev_mac);
 
 		/* two kinds of host-initiated state changes:
 		 *  - iff DATA transfer is active, carrier is "on"
@@ -1167,15 +1231,6 @@ int gether_register_netdev(struct net_device *net)
 		 */
 		netif_carrier_off(net);
 	}
-	sa.sa_family = net->type;
-	memcpy(sa.sa_data, dev->dev_mac, ETH_ALEN);
-	rtnl_lock();
-	status = dev_set_mac_address(net, &sa);
-	rtnl_unlock();
-	if (status)
-		pr_warn("cannot set self ethernet address: %d\n", status);
-	else
-		DBG(dev, "MAC %pM\n", dev->dev_mac);
 
 	return status;
 }

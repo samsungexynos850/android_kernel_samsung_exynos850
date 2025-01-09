@@ -885,7 +885,6 @@ static int acc_open(struct inode *ip, struct file *fp)
 		return -EBUSY;
 	}
 
-	printk(KERN_INFO "usb: acc_open\n");
 	dev->disconnected = 0;
 	fp->private_data = dev;
 	return 0;
